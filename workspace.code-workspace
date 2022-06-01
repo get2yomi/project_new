@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"name": "irremote",
+			"path": "..\\..\\..\\Documents\\PlatformIO\\Projects\\irremote"
+		},
+		{
+			"name": "second project",
+			"path": "..\\..\\..\\Documents\\PlatformIO\\Projects\\second project"
+		},
+		{
+			"path": "."
+		}
+	]
+}
