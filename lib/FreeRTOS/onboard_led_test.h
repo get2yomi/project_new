@@ -1,0 +1,104 @@
+#ifndef onboard_led_test
+#define onboard_led_test
+
+
+#include "stm32f411xe.h"
+#include "stdlib.h"
+#include "stdio.h"
+#include "string.h"
+#include "stdbool.h"
+
+uint32_t systemtick;
+
+void led_inti(void){
+
+RCC->AHB1ENR = RCC_AHB1ENR_GPIOCEN;   // ENABLING C13 ONBOARD LED.
+	GPIOC->MODER |= GPIO_MODER_MODE13_0;  // GENERAL PURPOSE OUTPUT MODE
+	GPIOC->MODER &= ~(GPIO_MODER_MODE13_1);
+    GPIOC->OTYPER &= ~GPIO_OTYPER_OT13 ; // OUTPUT PUSH PULL, RESET STATE
+	GPIOC->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED13_0;  // FAST SPEED MODE SELECTED.
+	GPIOC->OSPEEDR |= GPIO_OSPEEDR_OSPEED13_1;
+	GPIOC->PUPDR |= GPIO_PUPDR_PUPD13_1;    // PULL UP RESISTOR SELKECTED.
+	GPIOC->PUPDR &= ~GPIO_PUPDR_PUPD13_0;
+    
+
+	//GPIOC->BSRR |= GPIO_BSRR_BR13;
+	//delay_us(100000);
+	//GPIOC->BSRR |= GPIO_BSRR_BS13;
+	//delay_us(100000);
+
+
+
+}
+
+// setiing for changing microcontroller clock speed.
+/*
+1.) ENABLE HSE AND WAIT FOR THE HSE TO BECOME READY
+2.) SET THE POWER ENABLE CLOCK AND VOLTAGE REGULATOR
+3.) CONFIGURE THE FLASH PREFETCH AND THE LATENCY RELATED SETTINGS
+4.) CONFIGURE THE PRESCALARS HCLK,PCLK1, PCLK2
+5.) CONFIGURE THE MAIN PLL
+6.) ENABLE THE PLL AND WAIT FOR IT TO BECOME READY.
+7.) SELECT THE CLOCK SOURCE AND WAIT FOR IT TO BE SET.
+*/
+void system_coreclock_cofig(void){
+#define PLL_M 12
+#define PLL_N 96
+#define PLL_P 00   // SHIFTING 0 TO 16 POSITION 2
+
+RCC->CR |= RCC_CR_HSEON; // ENABLING THE HSE CLOCK.
+while (!(RCC->CR &RCC_CR_HSERDY)); // WAITING FOR THE HSE CLOCK TO BE ENABLE.
+RCC->APB1ENR |= RCC_APB1ENR_PWREN ; // POWER INTERNAL CLOCK ENABLE
+PWR->CR |=PWR_CR_VOS;  // VOLTAGE REGULATOR SET
+FLASH->ACR = FLASH_ACR_DCEN|FLASH_ACR_ICEN|FLASH_ACR_PRFTEN|FLASH_ACR_LATENCY_3WS; // FLASH LATENCY = 3WS
+RCC->CFGR |= RCC_CFGR_HPRE_DIV1;  // AHB PRESCALER DIV 1 SELECTED FOR 100MHZ
+RCC->CFGR |= RCC_CFGR_PPRE1_DIV2; // APB1 DIV2 = 50MHZ
+RCC->CFGR |= RCC_CFGR_PPRE2_DIV1;  // APB2 DIV1 = 100MHZ
+
+RCC->PLLCFGR |= (PLL_M <<0)|(PLL_N << 6)| (PLL_P << 16) | (RCC_PLLCFGR_PLLSRC_HSE); // ENABLING PLL CLOCK SOURCE
+
+RCC->CR |= RCC_CR_PLLON ; // ENABLING PLL BIT
+
+while (!(RCC->CR & RCC_CR_PLLRDY));  // CHECKING IF THE PLL IS SET AND WORKING GOOD
+
+RCC->CFGR |= RCC_CFGR_SW_PLL; // CHOOSING THE REQUIRED CLOCK SETTING.
+
+while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);   // CHECKING IF HSE CLOCK IS LOCKED.
+
+
+SystemCoreClockUpdate();   // UPDATE SYSTEM CLOCK
+SysTick_Config(SystemCoreClock/1000);
+
+}
+/*
+// systemtick subroutine 
+void SysTick_Handler(void){
+	systemtick++;
+}
+*/
+void Delay_ms(uint32_t ma)
+{
+//SysTick_Config(SystemCoreClock/1000);// this is used to activate the interrupt for 1ms 
+for(uint16_t i=0; i<ma; i++) {for(uint16_t j=0; j<ma; j++){}};
+	//systemtick = 0;
+//while (systemtick<ma);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif 
